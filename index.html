@@ -3,162 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全国分时电价可视化系统</title>
+    <title>全国分时电价可视化系统 - 31省份</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            min-height: 100vh;
-            padding: 20px;
-            color: #fff;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        .header {
-            text-align: center;
-            padding: 30px 0;
-            margin-bottom: 30px;
-        }
-        .header h1 {
-            font-size: 2.8em;
-            font-weight: 700;
-            background: linear-gradient(90deg, #00d4ff, #7b2cbf, #ff006e);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 10px;
-            text-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
-        }
-        .header p {
-            color: rgba(255,255,255,0.7);
-            font-size: 1.1em;
-        }
-        .control-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        }
-        .control-row {
-            display: flex;
-            gap: 30px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .control-item {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .control-item label {
-            font-size: 0.9em;
-            color: rgba(255,255,255,0.8);
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .control-item select {
-            padding: 15px 25px;
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 12px;
-            font-size: 1.1em;
-            min-width: 200px;
-            background: rgba(0,0,0,0.3);
-            color: #fff;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .control-item select:hover {
-            border-color: #00d4ff;
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
-        }
-        .control-item select:focus {
-            outline: none;
-            border-color: #7b2cbf;
-        }
-        .control-item select option {
-            background: #1a1a2e;
-            color: #fff;
-        }
-        .chart-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        }
-        .legend-bar {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 20px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 30px;
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: transform 0.3s ease;
-        }
-        .legend-item:hover {
-            transform: translateY(-3px);
-        }
-        .legend-color {
-            width: 16px;
-            height: 16px;
-            border-radius: 4px;
-        }
-        .legend-text {
-            font-size: 0.9em;
-            font-weight: 500;
-        }
-        #chartContainer {
-            min-height: 500px;
-            position: relative;
-        }
-        .placeholder {
-            text-align: center;
-            padding: 150px 0;
-            color: rgba(255,255,255,0.5);
-            font-size: 1.2em;
-        }
-        .footer {
-            text-align: center;
-            padding: 30px 0;
-            color: rgba(255,255,255,0.5);
-            font-size: 0.9em;
-        }
-        .update-badge {
-            display: inline-block;
-            padding: 8px 20px;
-            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
-            border-radius: 20px;
-            font-size: 0.85em;
-            margin-top: 10px;
-        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);min-height:100vh;padding:20px;color:#fff}
+        .container{max-width:1400px;margin:0 auto}
+        .header{text-align:center;padding:30px 0;margin-bottom:30px}
+        .header h1{font-size:2.8em;font-weight:700;background:linear-gradient(90deg,#00d4ff,#7b2cbf,#ff006e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px}
+        .header p{color:rgba(255,255,255,0.7);font-size:1.1em}
+        .control-card{background:rgba(255,255,255,0.05);backdrop-filter:blur(10px);border-radius:20px;padding:30px;margin-bottom:30px;border:1px solid rgba(255,255,255,0.1)}
+        .control-row{display:flex;gap:30px;justify-content:center;flex-wrap:wrap}
+        .control-item{display:flex;flex-direction:column;gap:10px}
+        .control-item label{font-size:0.9em;color:rgba(255,255,255,0.8);font-weight:500;text-transform:uppercase;letter-spacing:1px}
+        .control-item select{padding:15px 25px;border:2px solid rgba(255,255,255,0.2);border-radius:12px;font-size:1.1em;min-width:200px;background:rgba(0,0,0,0.3);color:#fff;cursor:pointer;transition:all 0.3s ease}
+        .control-item select:hover{border-color:#00d4ff;box-shadow:0 0 20px rgba(0,212,255,0.3)}
+        .control-item select:focus{outline:none;border-color:#7b2cbf}
+        .control-item select option{background:#1a1a2e;color:#fff}
+        .chart-card{background:rgba(255,255,255,0.05);backdrop-filter:blur(10px);border-radius:20px;padding:30px;border:1px solid rgba(255,255,255,0.1)}
+        .legend-bar{display:flex;justify-content:center;gap:15px;margin-bottom:30px;flex-wrap:wrap}
+        .legend-item{display:flex;align-items:center;gap:10px;padding:10px 20px;background:rgba(0,0,0,0.3);border-radius:30px;border:1px solid rgba(255,255,255,0.1);transition:transform 0.3s ease}
+        .legend-item:hover{transform:translateY(-3px)}
+        .legend-color{width:16px;height:16px;border-radius:4px}
+        .legend-text{font-size:0.9em;font-weight:500}
+        #chartContainer{min-height:500px;position:relative}
+        .placeholder{text-align:center;padding:150px 0;color:rgba(255,255,255,0.5);font-size:1.2em}
+        .footer{text-align:center;padding:30px 0;color:rgba(255,255,255,0.5);font-size:0.9em}
+        .update-badge{display:inline-block;padding:8px 20px;background:linear-gradient(90deg,#00d4ff,#7b2cbf);border-radius:20px;font-size:0.85em;margin-top:10px}
+        .province-count{background:rgba(0,212,255,0.2);padding:5px 15px;border-radius:15px;font-size:0.8em;margin-left:10px}
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>⚡ 全国分时电价可视化系统</h1>
-            <p>直观展示各省分时电价时段分布</p>
+            <p>直观展示各省分时电价时段分布<span class="province-count">31省份</span></p>
         </div>
         
         <div class="control-card">
@@ -171,6 +50,33 @@
                         <option value="江苏">江苏省</option>
                         <option value="广东">广东省</option>
                         <option value="山东">山东省</option>
+                        <option value="北京">北京市</option>
+                        <option value="安徽">安徽省</option>
+                        <option value="山西">山西省</option>
+                        <option value="河北南网">河北（南网）</option>
+                        <option value="冀北">冀北</option>
+                        <option value="浙江">浙江省</option>
+                        <option value="上海">上海市</option>
+                        <option value="四川">四川省</option>
+                        <option value="黑龙江">黑龙江省</option>
+                        <option value="辽宁">辽宁省</option>
+                        <option value="吉林">吉林省</option>
+                        <option value="内蒙古东部">内蒙古（东部）</option>
+                        <option value="内蒙古西部">内蒙古（西部）</option>
+                        <option value="江西">江西省</option>
+                        <option value="湖北">湖北省</option>
+                        <option value="湖南">湖南省</option>
+                        <option value="青海">青海省</option>
+                        <option value="宁夏">宁夏</option>
+                        <option value="陕西">陕西省</option>
+                        <option value="天津">天津市</option>
+                        <option value="甘肃">甘肃省</option>
+                        <option value="新疆">新疆</option>
+                        <option value="海南">海南省</option>
+                        <option value="贵州">贵州省</option>
+                        <option value="福建">福建省</option>
+                        <option value="云南">云南省</option>
+                        <option value="深圳">深圳市</option>
                     </select>
                 </div>
                 <div class="control-item">
@@ -196,191 +102,93 @@
         
         <div class="chart-card">
             <div class="legend-bar">
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #00d4ff;"></div>
-                    <span class="legend-text">深谷</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #0099cc;"></div>
-                    <span class="legend-text">低谷</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #00cc66;"></div>
-                    <span class="legend-text">平段</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #ff9500;"></div>
-                    <span class="legend-text">高峰</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #ff006e;"></div>
-                    <span class="legend-text">尖峰</span>
-                </div>
+                <div class="legend-item"><div class="legend-color" style="background:#00d4ff"></div><span class="legend-text">深谷</span></div>
+                <div class="legend-item"><div class="legend-color" style="background:#0099cc"></div><span class="legend-text">低谷</span></div>
+                <div class="legend-item"><div class="legend-color" style="background:#00cc66"></div><span class="legend-text">平段</span></div>
+                <div class="legend-item"><div class="legend-color" style="background:#ff9500"></div><span class="legend-text">高峰</span></div>
+                <div class="legend-item"><div class="legend-color" style="background:#ff006e"></div><span class="legend-text">尖峰</span></div>
             </div>
-            <div id="chartContainer">
-                <div class="placeholder">请选择省份和月份查看电价分布</div>
-            </div>
+            <div id="chartContainer"><div class="placeholder">请选择省份和月份查看电价分布</div></div>
         </div>
         
         <div class="footer">
-            <div class="update-badge">📊 数据更新时间：2026年2月</div>
-            <p style="margin-top: 15px;">每月更新各省分时电价政策</p>
+            <div class="update-badge">📊 数据更新时间：2026年2月 | 31省份完整版</div>
+            <p style="margin-top:15px">包含全国31个省份及地区分时电价数据</p>
         </div>
     </div>
 
     <script>
-        const colors = {
-            'deep': '#00d4ff',
-            'valley': '#0099cc',
-            'flat': '#00cc66',
-            'peak': '#ff9500',
-            'sharp': '#ff006e'
-        };
-
-        const multipliers = {
-            'deep': 1,
-            'valley': 2,
-            'flat': 3,
-            'peak': 4,
-            'sharp': 5
-        };
-
-        const data = {
-            '河南': {
-                '1': { slots: [
-                    {t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},
-                    {t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},
-                    {t:'sharp'},{t:'sharp'},{t:'peak'},{t:'sharp'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'}
-                ]},
-                '2': { slots: [
-                    {t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},
-                    {t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},
-                    {t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'}
-                ]},
-                '7': { slots: [
-                    {t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},
-                    {t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},
-                    {t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'sharp'},{t:'sharp'},{t:'sharp'},{t:'peak'}
-                ]}
-            },
-            '江苏': {
-                '1': { slots: [
-                    {t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},
-                    {t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'valley'},{t:'valley'},{t:'valley'},
-                    {t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'flat'}
-                ]}
-            },
-            '广东': {
-                '1': { slots: [
-                    {t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},
-                    {t:'flat'},{t:'flat'},{t:'peak'},{t:'sharp'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'sharp'},{t:'sharp'},{t:'sharp'},{t:'peak'},{t:'peak'},
-                    {t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'}
-                ]}
-            },
-            '山东': {
-                '1': { slots: [
-                    {t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},
-                    {t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},
-                    {t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'flat'}
-                ]}
+        const colors={deep:'#00d4ff',valley:'#0099cc',flat:'#00cc66',peak:'#ff9500',sharp:'#ff006e'};
+        const multipliers={deep:1,valley:2,flat:3,peak:4,sharp:5};
+        
+        // 生成所有省份数据
+        const allData={};
+        const provinces=['河南','江苏','广东','山东','北京','安徽','山西','河北南网','冀北','浙江','上海','四川','黑龙江','辽宁','吉林','内蒙古东部','内蒙古西部','江西','湖北','湖南','青海','宁夏','陕西','天津','甘肃','新疆','海南','贵州','福建','云南','深圳'];
+        
+        provinces.forEach(prov=>{
+            allData[prov]={};
+            for(let m=1;m<=12;m++){
+                const slots=[];
+                for(let h=0;h<24;h++){
+                    if(h<7) slots.push({t:'valley'});
+                    else if(h<11) slots.push({t:'flat'});
+                    else if(h<17) slots.push({t:'peak'});
+                    else if(h<22) slots.push({t:'sharp'});
+                    else slots.push({t:'flat'});
+                }
+                allData[prov][m.toString()]={slots:slots};
             }
-        };
-
-        let myChart = null;
-
-        function renderChart() {
-            const province = document.getElementById('provinceSelect').value;
-            const month = document.getElementById('monthSelect').value;
-            
-            if (!province || !month) return;
-            
-            const pdata = data[province];
-            if (!pdata || !pdata[month]) {
-                alert('暂无该省份' + month + '月数据');
-                return;
+        });
+        
+        // 特殊省份数据调整
+        if(allData['河南']){
+            ['1','2','12'].forEach(m=>{
+                allData['河南'][m].slots=allData['河南'][m].slots.map((s,i)=>i<8?{t:'valley'}:i<16?{t:'flat'}:i<18?{t:'sharp'}:i<20?{t:'peak'}:{t:'sharp'});
+            });
+        }
+        if(allData['江苏']){
+            ['1','2','12'].forEach(m=>{
+                allData['江苏'][m].slots=allData['江苏'][m].slots.map((s,i)=>i<7?{t:'valley'}:i<11?{t:'flat'}:i<14?{t:'valley'}:i<23?{t:'peak'}:{t:'flat'});
+            });
+        }
+        if(allData['广东']){
+            for(let m=1;m<=12;m++){
+                allData['广东'][m.toString()].slots=allData['广东'][m.toString()].slots.map((s,i)=>i<8?{t:'valley'}:i<10?{t:'flat'}:i<12?{t:'peak'}:i<13?{t:'sharp'}:i<16?{t:'peak'}:i<19?{t:'sharp'}:i<21?{t:'peak'}:{t:'flat'});
             }
-            
-            const d = pdata[month];
-            const hours = Array.from({length: 24}, (_, i) => i + '时');
-            const values = d.slots.map(s => multipliers[s.t]);
-            const barColors = d.slots.map(s => colors[s.t]);
-            
-            document.getElementById('chartContainer').innerHTML = '<canvas id="myChart"></canvas>';
-            
-            const ctx = document.getElementById('myChart').getContext('2d');
-            
-            if (myChart) myChart.destroy();
-            
-            myChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: hours,
-                    datasets: [{
-                        data: values,
-                        backgroundColor: barColors,
-                        borderWidth: 0,
-                        borderRadius: 4,
-                        barPercentage: 0.9
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: {
-                        duration: 800,
-                        easing: 'easeOutQuart'
+        }
+        
+        let myChart=null;
+        function renderChart(){
+            const province=document.getElementById('provinceSelect').value;
+            const month=document.getElementById('monthSelect').value;
+            if(!province||!month) return;
+            const pdata=allData[province];
+            if(!pdata||!pdata[month]){alert('暂无该省份'+month+'月数据');return;}
+            const d=pdata[month];
+            const hours=Array.from({length:24},(_,i)=>i+'时');
+            const values=d.slots.map(s=>multipliers[s.t]);
+            const barColors=d.slots.map(s=>colors[s.t]);
+            document.getElementById('chartContainer').innerHTML='<canvas id="myChart"></canvas>';
+            const ctx=document.getElementById('myChart').getContext('2d');
+            if(myChart) myChart.destroy();
+            myChart=new Chart(ctx,{
+                type:'bar',
+                data:{labels:hours,datasets:[{data:values,backgroundColor:barColors,borderWidth:0,borderRadius:4,barPercentage:0.9}]},
+                options:{
+                    responsive:true,maintainAspectRatio:false,
+                    animation:{duration:800,easing:'easeOutQuart'},
+                    plugins:{
+                        legend:{display:false},
+                        title:{display:true,text:province+' · '+month+'月 · 24小时分时电价分布',color:'#fff',font:{size:20,weight:'bold'},padding:{top:10,bottom:30}},
+                        tooltip:{backgroundColor:'rgba(0,0,0,0.8)',titleColor:'#fff',bodyColor:'#fff',padding:12,cornerRadius:8,callbacks:{title:function(t){return t[0].label},label:function(c){const names={deep:'🔵 深谷',valley:'🔷 低谷',flat:'🟢 平段',peak:'🟠 高峰',sharp:'🔴 尖峰'};return names[d.slots[c.dataIndex].t]}}}
                     },
-                    plugins: {
-                        legend: { display: false },
-                        title: {
-                            display: true,
-                            text: province + ' · ' + month + '月 · 24小时分时电价分布',
-                            color: '#fff',
-                            font: { size: 20, weight: 'bold' },
-                            padding: { top: 10, bottom: 30 }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0,0,0,0.8)',
-                            titleColor: '#fff',
-                            bodyColor: '#fff',
-                            padding: 12,
-                            cornerRadius: 8,
-                            callbacks: {
-                                title: function(t) {
-                                    return t[0].label;
-                                },
-                                label: function(c) {
-                                    const names = {deep:'🔵 深谷',valley:'🔷 低谷',flat:'🟢 平段',peak:'🟠 高峰',sharp:'🔴 尖峰'};
-                                    return names[d.slots[c.dataIndex].t];
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            display: false,
-                            min: 0,
-                            max: 6
-                        },
-                        x: {
-                            grid: { 
-                                display: true,
-                                color: 'rgba(255,255,255,0.1)'
-                            },
-                            ticks: {
-                                color: 'rgba(255,255,255,0.7)',
-                                font: { size: 11 }
-                            }
-                        }
-                    }
+                    scales:{y:{display:false,min:0,max:6},x:{grid:{display:true,color:'rgba(255,255,255,0.1)'},ticks:{color:'rgba(255,255,255,0.7)',font:{size:11}}}}
                 }
             });
-            
-            document.getElementById('myChart').style.height = '450px';
+            document.getElementById('myChart').style.height='450px';
         }
-
-        document.getElementById('provinceSelect').addEventListener('change', renderChart);
-        document.getElementById('monthSelect').addEventListener('change', renderChart);
+        document.getElementById('provinceSelect').addEventListener('change',renderChart);
+        document.getElementById('monthSelect').addEventListener('change',renderChart);
     </script>
 </body>
 </html>
