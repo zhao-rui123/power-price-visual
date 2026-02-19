@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>全国分时电价可视化查询系统</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -76,33 +76,41 @@
             padding: 30px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
             margin-bottom: 20px;
+            min-height: 500px;
         }
         .legend {
             display: flex;
             justify-content: center;
-            gap: 20px;
+            gap: 15px;
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 0.9em;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
             font-weight: 500;
+            color: white;
         }
         .legend-color {
-            width: 20px;
-            height: 20px;
-            border-radius: 4px;
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
         }
         .update-info {
             text-align: center;
             color: rgba(255,255,255,0.8);
             margin-top: 20px;
             font-size: 0.9em;
+        }
+        .placeholder {
+            text-align: center;
+            color: #999;
+            padding: 100px 0;
+            font-size: 1.2em;
         }
     </style>
 </head>
@@ -116,6 +124,10 @@
                 <label>选择省份</label>
                 <select id="provinceSelect">
                     <option value="">请选择省份</option>
+                    <option value="河南">河南</option>
+                    <option value="江苏">江苏</option>
+                    <option value="广东">广东</option>
+                    <option value="山东">山东</option>
                 </select>
             </div>
             <div class="control-group">
@@ -140,171 +152,131 @@
         
         <div class="chart-container">
             <div class="legend">
-                <div class="legend-item" style="background: #00f2fe; color: white;">
+                <div class="legend-item" style="background: linear-gradient(135deg, #00f2fe, #4facfe);">
                     <div class="legend-color" style="background: #00f2fe;"></div>
-                    深谷
+                    深谷 0.4x
                 </div>
-                <div class="legend-item" style="background: #3498db; color: white;">
+                <div class="legend-item" style="background: linear-gradient(135deg, #3498db, #2980b9);">
                     <div class="legend-color" style="background: #3498db;"></div>
-                    低谷
+                    低谷 0.6x
                 </div>
-                <div class="legend-item" style="background: #4ecdc4; color: white;">
+                <div class="legend-item" style="background: linear-gradient(135deg, #4ecdc4, #44a08d);">
                     <div class="legend-color" style="background: #4ecdc4;"></div>
-                    平段
+                    平段 1.0x
                 </div>
-                <div class="legend-item" style="background: #f39c12; color: white;">
+                <div class="legend-item" style="background: linear-gradient(135deg, #f39c12, #e67e22);">
                     <div class="legend-color" style="background: #f39c12;"></div>
-                    高峰
+                    高峰 1.6x
                 </div>
-                <div class="legend-item" style="background: #e74c3c; color: white;">
+                <div class="legend-item" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
                     <div class="legend-color" style="background: #e74c3c;"></div>
-                    尖峰
+                    尖峰 2.0x
                 </div>
             </div>
-            <canvas id="priceChart"></canvas>
+            <div id="chartWrapper">
+                <div class="placeholder">请选择省份和月份查看电价分布</div>
+            </div>
         </div>
         
         <p class="update-info">数据更新时间：2026年2月 | 每月更新</p>
     </div>
 
     <script>
-        // 电价倍数：深谷0.4，低谷0.6，平段1.0，高峰1.6，尖峰2.0
-        const priceMultipliers = {
-            'deep': 0.4,   // 深谷
-            'valley': 0.6, // 低谷
-            'flat': 1.0,   // 平段
-            'peak': 1.6,   // 高峰
-            'sharp': 2.0   // 尖峰
+        // 电价倍数
+        const multipliers = {
+            'deep': 0.4,
+            'valley': 0.6,
+            'flat': 1.0,
+            'peak': 1.6,
+            'sharp': 2.0
         };
 
-        // 颜色配置
+        // 颜色
         const colors = {
-            'deep': '#00f2fe',   // 深谷 - 浅蓝
-            'valley': '#3498db', // 低谷 - 蓝色
-            'flat': '#4ecdc4',   // 平段 - 青绿
-            'peak': '#f39c12',   // 高峰 - 橙色
-            'sharp': '#e74c3c'   // 尖峰 - 红色
+            'deep': '#00f2fe',
+            'valley': '#3498db',
+            'flat': '#4ecdc4',
+            'peak': '#f39c12',
+            'sharp': '#e74c3c'
         };
 
-        // 省份数据（2026年2月数据）
-        const provinceData = {
+        // 数据
+        const data = {
             '河南': {
-                '1': { 
-                    slots: [
-                        {hour: 0, type: 'valley'}, {hour: 1, type: 'valley'}, {hour: 2, type: 'valley'},
-                        {hour: 3, type: 'valley'}, {hour: 4, type: 'valley'}, {hour: 5, type: 'valley'},
-                        {hour: 6, type: 'valley'}, {hour: 7, type: 'valley'},
-                        {hour: 8, type: 'flat'}, {hour: 9, type: 'flat'}, {hour: 10, type: 'flat'},
-                        {hour: 11, type: 'flat'}, {hour: 12, type: 'flat'}, {hour: 13, type: 'flat'},
-                        {hour: 14, type: 'flat'}, {hour: 15, type: 'flat'},
-                        {hour: 16, type: 'sharp'}, {hour: 17, type: 'sharp'}, {hour: 18, type: 'peak'},
-                        {hour: 19, type: 'sharp'}, {hour: 20, type: 'peak'}, {hour: 21, type: 'peak'},
-                        {hour: 22, type: 'peak'}, {hour: 23, type: 'peak'}
-                    ]
-                },
-                '2': {
-                    slots: [
-                        {hour: 0, type: 'valley'}, {hour: 1, type: 'valley'}, {hour: 2, type: 'valley'},
-                        {hour: 3, type: 'valley'}, {hour: 4, type: 'valley'}, {hour: 5, type: 'valley'},
-                        {hour: 6, type: 'valley'}, {hour: 7, type: 'valley'},
-                        {hour: 8, type: 'flat'}, {hour: 9, type: 'flat'}, {hour: 10, type: 'flat'},
-                        {hour: 11, type: 'flat'}, {hour: 12, type: 'flat'}, {hour: 13, type: 'flat'},
-                        {hour: 14, type: 'flat'}, {hour: 15, type: 'flat'},
-                        {hour: 16, type: 'peak'}, {hour: 17, type: 'peak'}, {hour: 18, type: 'peak'},
-                        {hour: 19, type: 'peak'}, {hour: 20, type: 'peak'}, {hour: 21, type: 'peak'},
-                        {hour: 22, type: 'peak'}, {hour: 23, type: 'peak'}
-                    ]
-                },
-                '7': {
-                    slots: [
-                        {hour: 0, type: 'valley'}, {hour: 1, type: 'valley'}, {hour: 2, type: 'valley'},
-                        {hour: 3, type: 'valley'}, {hour: 4, type: 'valley'}, {hour: 5, type: 'valley'},
-                        {hour: 6, type: 'valley'}, {hour: 7, type: 'valley'},
-                        {hour: 8, type: 'flat'}, {hour: 9, type: 'flat'}, {hour: 10, type: 'flat'},
-                        {hour: 11, type: 'flat'}, {hour: 12, type: 'flat'}, {hour: 13, type: 'flat'},
-                        {hour: 14, type: 'flat'}, {hour: 15, type: 'flat'},
-                        {hour: 16, type: 'peak'}, {hour: 17, type: 'peak'}, {hour: 18, type: 'peak'},
-                        {hour: 19, type: 'peak'}, {hour: 20, type: 'sharp'}, {hour: 21, type: 'sharp'},
-                        {hour: 22, type: 'sharp'}, {hour: 23, type: 'peak'}
-                    ]
-                }
+                '1': {name: '1月、2月、12月', slots: [
+                    {h:0,t:'valley'},{h:1,t:'valley'},{h:2,t:'valley'},{h:3,t:'valley'},{h:4,t:'valley'},{h:5,t:'valley'},{h:6,t:'valley'},{h:7,t:'valley'},
+                    {h:8,t:'flat'},{h:9,t:'flat'},{h:10,t:'flat'},{h:11,t:'flat'},{h:12,t:'flat'},{h:13,t:'flat'},{h:14,t:'flat'},{h:15,t:'flat'},
+                    {h:16,t:'sharp'},{h:17,t:'sharp'},{h:18,t:'peak'},{h:19,t:'sharp'},{h:20,t:'peak'},{h:21,t:'peak'},{h:22,t:'peak'},{h:23,t:'peak'}
+                ]},
+                '2': {name: '1月、2月、12月', slots: [
+                    {h:0,t:'valley'},{h:1,t:'valley'},{h:2,t:'valley'},{h:3,t:'valley'},{h:4,t:'valley'},{h:5,t:'valley'},{h:6,t:'valley'},{h:7,t:'valley'},
+                    {h:8,t:'flat'},{h:9,t:'flat'},{h:10,t:'flat'},{h:11,t:'flat'},{h:12,t:'flat'},{h:13,t:'flat'},{h:14,t:'flat'},{h:15,t:'flat'},
+                    {h:16,t:'peak'},{h:17,t:'peak'},{h:18,t:'peak'},{h:19,t:'peak'},{h:20,t:'peak'},{h:21,t:'peak'},{h:22,t:'peak'},{h:23,t:'peak'}
+                ]},
+                '7': {name: '6-8月', slots: [
+                    {h:0,t:'valley'},{h:1,t:'valley'},{h:2,t:'valley'},{h:3,t:'valley'},{h:4,t:'valley'},{h:5,t:'valley'},{h:6,t:'valley'},{h:7,t:'valley'},
+                    {h:8,t:'flat'},{h:9,t:'flat'},{h:10,t:'flat'},{h:11,t:'flat'},{h:12,t:'flat'},{h:13,t:'flat'},{h:14,t:'flat'},{h:15,t:'flat'},
+                    {h:16,t:'peak'},{h:17,t:'peak'},{h:18,t:'peak'},{h:19,t:'peak'},{h:20,t:'sharp'},{h:21,t:'sharp'},{h:22,t:'sharp'},{h:23,t:'peak'}
+                ]}
             },
             '江苏': {
-                '1': {
-                    slots: [
-                        {hour: 0, type: 'valley'}, {hour: 1, type: 'valley'}, {hour: 2, type: 'valley'},
-                        {hour: 3, type: 'valley'}, {hour: 4, type: 'valley'}, {hour: 5, type: 'valley'},
-                        {hour: 6, type: 'valley'},
-                        {hour: 7, type: 'flat'}, {hour: 8, type: 'flat'}, {hour: 9, type: 'flat'},
-                        {hour: 10, type: 'flat'}, {hour: 11, type: 'valley'},
-                        {hour: 12, type: 'valley'}, {hour: 13, type: 'valley'},
-                        {hour: 14, type: 'peak'}, {hour: 15, type: 'peak'},
-                        {hour: 16, type: 'peak'}, {hour: 17, type: 'peak'}, {hour: 18, type: 'peak'},
-                        {hour: 19, type: 'peak'}, {hour: 20, type: 'peak'}, {hour: 21, type: 'peak'},
-                        {hour: 22, type: 'peak'},
-                        {hour: 23, type: 'flat'}
-                    ]
-                }
+                '1': {name: '冬季', slots: [
+                    {h:0,t:'valley'},{h:1,t:'valley'},{h:2,t:'valley'},{h:3,t:'valley'},{h:4,t:'valley'},{h:5,t:'valley'},{h:6,t:'valley'},
+                    {h:7,t:'flat'},{h:8,t:'flat'},{h:9,t:'flat'},{h:10,t:'flat'},{h:11,t:'valley'},{h:12,t:'valley'},{h:13,t:'valley'},
+                    {h:14,t:'peak'},{h:15,t:'peak'},{h:16,t:'peak'},{h:17,t:'peak'},{h:18,t:'peak'},{h:19,t:'peak'},{h:20,t:'peak'},{h:21,t:'peak'},{h:22,t:'peak'},{h:23,t:'flat'}
+                ]}
             },
             '广东': {
-                '1': {
-                    slots: [
-                        {hour: 0, type: 'valley'}, {hour: 1, type: 'valley'}, {hour: 2, type: 'valley'},
-                        {hour: 3, type: 'valley'}, {hour: 4, type: 'valley'}, {hour: 5, type: 'valley'},
-                        {hour: 6, type: 'valley'}, {hour: 7, type: 'valley'},
-                        {hour: 8, type: 'flat'}, {hour: 9, type: 'flat'}, {hour: 10, type: 'peak'},
-                        {hour: 11, type: 'sharp'}, {hour: 12, type: 'peak'},
-                        {hour: 13, type: 'peak'}, {hour: 14, type: 'peak'},
-                        {hour: 15, type: 'sharp'}, {hour: 16, type: 'sharp'}, {hour: 17, type: 'sharp'},
-                        {hour: 18, type: 'peak'}, {hour: 19, type: 'peak'},
-                        {hour: 20, type: 'flat'}, {hour: 21, type: 'flat'}, {hour: 22, type: 'flat'},
-                        {hour: 23, type: 'flat'}
-                    ]
-                }
+                '1': {name: '全年', slots: [
+                    {h:0,t:'valley'},{h:1,t:'valley'},{h:2,t:'valley'},{h:3,t:'valley'},{h:4,t:'valley'},{h:5,t:'valley'},{h:6,t:'valley'},{h:7,t:'valley'},
+                    {h:8,t:'flat'},{h:9,t:'flat'},{h:10,t:'peak'},{h:11,t:'sharp'},{h:12,t:'peak'},{h:13,t:'peak'},{h:14,t:'peak'},{h:15,t:'sharp'},{h:16,t:'sharp'},{h:17,t:'sharp'},{h:18,t:'peak'},{h:19,t:'peak'},
+                    {h:20,t:'flat'},{h:21,t:'flat'},{h:22,t:'flat'},{h:23,t:'flat'}
+                ]}
+            },
+            '山东': {
+                '1': {name: '冬季', slots: [
+                    {h:0,t:'valley'},{h:1,t:'valley'},{h:2,t:'valley'},{h:3,t:'valley'},{h:4,t:'valley'},{h:5,t:'valley'},{h:6,t:'valley'},{h:7,t:'valley'},
+                    {h:8,t:'flat'},{h:9,t:'flat'},{h:10,t:'flat'},{h:11,t:'flat'},{h:12,t:'flat'},{h:13,t:'flat'},{h:14,t:'flat'},{h:15,t:'flat'},
+                    {h:16,t:'peak'},{h:17,t:'peak'},{h:18,t:'peak'},{h:19,t:'peak'},{h:20,t:'peak'},{h:21,t:'peak'},{h:22,t:'peak'},{h:23,t:'flat'}
+                ]}
             }
         };
 
-        // 初始化省份选择
-        const provinceSelect = document.getElementById('provinceSelect');
-        Object.keys(provinceData).forEach(province => {
-            const option = document.createElement('option');
-            option.value = province;
-            option.textContent = province;
-            provinceSelect.appendChild(option);
-        });
+        let myChart = null;
 
-        let chart = null;
-
-        function updateChart() {
-            const province = provinceSelect.value;
+        function renderChart() {
+            const province = document.getElementById('provinceSelect').value;
             const month = document.getElementById('monthSelect').value;
             
             if (!province || !month) return;
             
-            const data = provinceData[province][month];
-            if (!data) {
-                alert('该省份暂无' + month + '月数据');
+            const pdata = data[province];
+            if (!pdata || !pdata[month]) {
+                alert('暂无该省份' + month + '月数据');
                 return;
             }
             
-            // 准备图表数据
-            const hours = data.slots.map(s => s.hour + ':00');
-            const prices = data.slots.map(s => priceMultipliers[s.type]);
-            const barColors = data.slots.map(s => colors[s.type]);
+            const d = pdata[month];
+            const hours = d.slots.map(s => s.h + ':00');
+            const values = d.slots.map(s => multipliers[s.t]);
+            const barColors = d.slots.map(s => colors[s.t]);
             
-            const ctx = document.getElementById('priceChart').getContext('2d');
+            const ctx = document.createElement('canvas');
+            ctx.id = 'myChart';
+            ctx.style.maxHeight = '500px';
             
-            if (chart) {
-                chart.destroy();
-            }
+            document.getElementById('chartWrapper').innerHTML = '';
+            document.getElementById('chartWrapper').appendChild(ctx);
             
-            chart = new Chart(ctx, {
+            if (myChart) myChart.destroy();
+            
+            myChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: hours,
                     datasets: [{
-                        label: province + ' ' + month + '月 24小时电价分布',
-                        data: prices,
+                        label: '电价倍数',
+                        data: values,
                         backgroundColor: barColors,
                         borderWidth: 1,
                         borderColor: '#fff'
@@ -312,29 +284,20 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
+                    maintainAspectRatio: false,
                     plugins: {
-                        legend: {
-                            display: false
-                        },
+                        legend: { display: false },
                         title: {
                             display: true,
-                            text: province + ' ' + month + '月 24小时分时电价分布',
-                            font: { size: 20, weight: 'bold' },
-                            padding: 20
+                            text: province + ' ' + month + '月 ' + d.name + ' 24小时电价分布',
+                            font: { size: 18 }
                         },
                         tooltip: {
                             callbacks: {
-                                label: function(context) {
-                                    const typeNames = {
-                                        'deep': '深谷',
-                                        'valley': '低谷', 
-                                        'flat': '平段',
-                                        'peak': '高峰',
-                                        'sharp': '尖峰'
-                                    };
-                                    const slot = data.slots[context.dataIndex];
-                                    return typeNames[slot.type] + ': ' + context.parsed.y + '倍';
+                                label: function(c) {
+                                    const names = {deep:'深谷',valley:'低谷',flat:'平段',peak:'高峰',sharp:'尖峰'};
+                                    const t = d.slots[c.dataIndex].t;
+                                    return names[t] + ': ' + c.parsed.y + 'x';
                                 }
                             }
                         }
@@ -343,35 +306,18 @@
                         y: {
                             beginAtZero: true,
                             max: 2.2,
-                            title: {
-                                display: true,
-                                text: '电价倍数（以平段为基准）',
-                                font: { size: 14, weight: 'bold' }
-                            },
-                            ticks: {
-                                callback: function(value) {
-                                    return value + 'x';
-                                }
-                            }
+                            title: { display: true, text: '电价倍数' }
                         },
                         x: {
-                            title: {
-                                display: true,
-                                text: '时段',
-                                font: { size: 14, weight: 'bold' }
-                            },
-                            ticks: {
-                                maxRotation: 45
-                            }
+                            title: { display: true, text: '时段' }
                         }
                     }
                 }
             });
         }
 
-        // 监听选择变化
-        provinceSelect.addEventListener('change', updateChart);
-        document.getElementById('monthSelect').addEventListener('change', updateChart);
+        document.getElementById('provinceSelect').addEventListener('change', renderChart);
+        document.getElementById('monthSelect').addEventListener('change', renderChart);
     </script>
 </body>
 </html>
