@@ -18,7 +18,7 @@
             padding: 20px;
         }
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
         }
         h1 {
@@ -76,7 +76,6 @@
             padding: 30px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
             margin-bottom: 20px;
-            min-height: 500px;
         }
         .legend {
             display: flex;
@@ -89,16 +88,16 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            padding: 6px 12px;
-            border-radius: 15px;
-            font-size: 0.85em;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
             font-weight: 500;
             color: white;
         }
         .legend-color {
-            width: 16px;
-            height: 16px;
-            border-radius: 3px;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
         }
         .update-info {
             text-align: center;
@@ -109,8 +108,11 @@
         .placeholder {
             text-align: center;
             color: #999;
-            padding: 100px 0;
+            padding: 150px 0;
             font-size: 1.2em;
+        }
+        #chartWrapper {
+            min-height: 600px;
         }
     </style>
 </head>
@@ -152,25 +154,25 @@
         
         <div class="chart-container">
             <div class="legend">
-                <div class="legend-item" style="background: linear-gradient(135deg, #00f2fe, #4facfe);">
-                    <div class="legend-color" style="background: #00f2fe;"></div>
-                    深谷 0.4x
+                <div class="legend-item" style="background: #00f2fe;">
+                    <div class="legend-color" style="background: #00d2ff;"></div>
+                    深谷
                 </div>
-                <div class="legend-item" style="background: linear-gradient(135deg, #3498db, #2980b9);">
-                    <div class="legend-color" style="background: #3498db;"></div>
-                    低谷 0.6x
+                <div class="legend-item" style="background: #3498db;">
+                    <div class="legend-color" style="background: #2980b9;"></div>
+                    低谷
                 </div>
-                <div class="legend-item" style="background: linear-gradient(135deg, #4ecdc4, #44a08d);">
-                    <div class="legend-color" style="background: #4ecdc4;"></div>
-                    平段 1.0x
+                <div class="legend-item" style="background: #4ecdc4;">
+                    <div class="legend-color" style="background: #44a08d;"></div>
+                    平段
                 </div>
-                <div class="legend-item" style="background: linear-gradient(135deg, #f39c12, #e67e22);">
-                    <div class="legend-color" style="background: #f39c12;"></div>
-                    高峰 1.6x
+                <div class="legend-item" style="background: #f39c12;">
+                    <div class="legend-color" style="background: #e67e22;"></div>
+                    高峰
                 </div>
-                <div class="legend-item" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
-                    <div class="legend-color" style="background: #e74c3c;"></div>
-                    尖峰 2.0x
+                <div class="legend-item" style="background: #e74c3c;">
+                    <div class="legend-color" style="background: #c0392b;"></div>
+                    尖峰
                 </div>
             </div>
             <div id="chartWrapper">
@@ -182,16 +184,6 @@
     </div>
 
     <script>
-        // 电价倍数
-        const multipliers = {
-            'deep': 0.4,
-            'valley': 0.6,
-            'flat': 1.0,
-            'peak': 1.6,
-            'sharp': 2.0
-        };
-
-        // 颜色
         const colors = {
             'deep': '#00f2fe',
             'valley': '#3498db',
@@ -200,44 +192,43 @@
             'sharp': '#e74c3c'
         };
 
-        // 数据
         const data = {
             '河南': {
-                '1': {name: '1月、2月、12月', slots: [
-                    {h:0,t:'valley'},{h:1,t:'valley'},{h:2,t:'valley'},{h:3,t:'valley'},{h:4,t:'valley'},{h:5,t:'valley'},{h:6,t:'valley'},{h:7,t:'valley'},
-                    {h:8,t:'flat'},{h:9,t:'flat'},{h:10,t:'flat'},{h:11,t:'flat'},{h:12,t:'flat'},{h:13,t:'flat'},{h:14,t:'flat'},{h:15,t:'flat'},
-                    {h:16,t:'sharp'},{h:17,t:'sharp'},{h:18,t:'peak'},{h:19,t:'sharp'},{h:20,t:'peak'},{h:21,t:'peak'},{h:22,t:'peak'},{h:23,t:'peak'}
+                '1': { slots: [
+                    {t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},
+                    {t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},
+                    {t:'sharp'},{t:'sharp'},{t:'peak'},{t:'sharp'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'}
                 ]},
-                '2': {name: '1月、2月、12月', slots: [
-                    {h:0,t:'valley'},{h:1,t:'valley'},{h:2,t:'valley'},{h:3,t:'valley'},{h:4,t:'valley'},{h:5,t:'valley'},{h:6,t:'valley'},{h:7,t:'valley'},
-                    {h:8,t:'flat'},{h:9,t:'flat'},{h:10,t:'flat'},{h:11,t:'flat'},{h:12,t:'flat'},{h:13,t:'flat'},{h:14,t:'flat'},{h:15,t:'flat'},
-                    {h:16,t:'peak'},{h:17,t:'peak'},{h:18,t:'peak'},{h:19,t:'peak'},{h:20,t:'peak'},{h:21,t:'peak'},{h:22,t:'peak'},{h:23,t:'peak'}
+                '2': { slots: [
+                    {t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},
+                    {t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},
+                    {t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'}
                 ]},
-                '7': {name: '6-8月', slots: [
-                    {h:0,t:'valley'},{h:1,t:'valley'},{h:2,t:'valley'},{h:3,t:'valley'},{h:4,t:'valley'},{h:5,t:'valley'},{h:6,t:'valley'},{h:7,t:'valley'},
-                    {h:8,t:'flat'},{h:9,t:'flat'},{h:10,t:'flat'},{h:11,t:'flat'},{h:12,t:'flat'},{h:13,t:'flat'},{h:14,t:'flat'},{h:15,t:'flat'},
-                    {h:16,t:'peak'},{h:17,t:'peak'},{h:18,t:'peak'},{h:19,t:'peak'},{h:20,t:'sharp'},{h:21,t:'sharp'},{h:22,t:'sharp'},{h:23,t:'peak'}
+                '7': { slots: [
+                    {t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},
+                    {t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},
+                    {t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'sharp'},{t:'sharp'},{t:'sharp'},{t:'peak'}
                 ]}
             },
             '江苏': {
-                '1': {name: '冬季', slots: [
-                    {h:0,t:'valley'},{h:1,t:'valley'},{h:2,t:'valley'},{h:3,t:'valley'},{h:4,t:'valley'},{h:5,t:'valley'},{h:6,t:'valley'},
-                    {h:7,t:'flat'},{h:8,t:'flat'},{h:9,t:'flat'},{h:10,t:'flat'},{h:11,t:'valley'},{h:12,t:'valley'},{h:13,t:'valley'},
-                    {h:14,t:'peak'},{h:15,t:'peak'},{h:16,t:'peak'},{h:17,t:'peak'},{h:18,t:'peak'},{h:19,t:'peak'},{h:20,t:'peak'},{h:21,t:'peak'},{h:22,t:'peak'},{h:23,t:'flat'}
+                '1': { slots: [
+                    {t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},
+                    {t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'valley'},{t:'valley'},{t:'valley'},
+                    {t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'flat'}
                 ]}
             },
             '广东': {
-                '1': {name: '全年', slots: [
-                    {h:0,t:'valley'},{h:1,t:'valley'},{h:2,t:'valley'},{h:3,t:'valley'},{h:4,t:'valley'},{h:5,t:'valley'},{h:6,t:'valley'},{h:7,t:'valley'},
-                    {h:8,t:'flat'},{h:9,t:'flat'},{h:10,t:'peak'},{h:11,t:'sharp'},{h:12,t:'peak'},{h:13,t:'peak'},{h:14,t:'peak'},{h:15,t:'sharp'},{h:16,t:'sharp'},{h:17,t:'sharp'},{h:18,t:'peak'},{h:19,t:'peak'},
-                    {h:20,t:'flat'},{h:21,t:'flat'},{h:22,t:'flat'},{h:23,t:'flat'}
+                '1': { slots: [
+                    {t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},
+                    {t:'flat'},{t:'flat'},{t:'peak'},{t:'sharp'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'sharp'},{t:'sharp'},{t:'sharp'},{t:'peak'},{t:'peak'},
+                    {t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'}
                 ]}
             },
             '山东': {
-                '1': {name: '冬季', slots: [
-                    {h:0,t:'valley'},{h:1,t:'valley'},{h:2,t:'valley'},{h:3,t:'valley'},{h:4,t:'valley'},{h:5,t:'valley'},{h:6,t:'valley'},{h:7,t:'valley'},
-                    {h:8,t:'flat'},{h:9,t:'flat'},{h:10,t:'flat'},{h:11,t:'flat'},{h:12,t:'flat'},{h:13,t:'flat'},{h:14,t:'flat'},{h:15,t:'flat'},
-                    {h:16,t:'peak'},{h:17,t:'peak'},{h:18,t:'peak'},{h:19,t:'peak'},{h:20,t:'peak'},{h:21,t:'peak'},{h:22,t:'peak'},{h:23,t:'flat'}
+                '1': { slots: [
+                    {t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},{t:'valley'},
+                    {t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},{t:'flat'},
+                    {t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'peak'},{t:'flat'}
                 ]}
             }
         };
@@ -257,16 +248,14 @@
             }
             
             const d = pdata[month];
-            const hours = d.slots.map(s => s.h + ':00');
-            const values = d.slots.map(s => multipliers[s.t]);
+            const hours = ['0:00','1:00','2:00','3:00','4:00','5:00','6:00','7:00','8:00','9:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00','23:00'];
+            const values = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
             const barColors = d.slots.map(s => colors[s.t]);
             
-            const ctx = document.createElement('canvas');
-            ctx.id = 'myChart';
-            ctx.style.maxHeight = '500px';
+            const wrapper = document.getElementById('chartWrapper');
+            wrapper.innerHTML = '<canvas id="myChart"></canvas>';
             
-            document.getElementById('chartWrapper').innerHTML = '';
-            document.getElementById('chartWrapper').appendChild(ctx);
+            const ctx = document.getElementById('myChart').getContext('2d');
             
             if (myChart) myChart.destroy();
             
@@ -275,11 +264,11 @@
                 data: {
                     labels: hours,
                     datasets: [{
-                        label: '电价倍数',
                         data: values,
                         backgroundColor: barColors,
-                        borderWidth: 1,
-                        borderColor: '#fff'
+                        borderWidth: 0,
+                        barPercentage: 0.95,
+                        categoryPercentage: 0.95
                     }]
                 },
                 options: {
@@ -289,31 +278,40 @@
                         legend: { display: false },
                         title: {
                             display: true,
-                            text: province + ' ' + month + '月 ' + d.name + ' 24小时电价分布',
-                            font: { size: 18 }
+                            text: province + ' ' + month + '月 24小时分时电价分布',
+                            font: { size: 22, weight: 'bold' },
+                            padding: { top: 10, bottom: 30 }
                         },
                         tooltip: {
                             callbacks: {
+                                title: function(t) {
+                                    return t[0].label;
+                                },
                                 label: function(c) {
                                     const names = {deep:'深谷',valley:'低谷',flat:'平段',peak:'高峰',sharp:'尖峰'};
-                                    const t = d.slots[c.dataIndex].t;
-                                    return names[t] + ': ' + c.parsed.y + 'x';
+                                    return names[d.slots[c.dataIndex].t];
                                 }
                             }
                         }
                     },
                     scales: {
                         y: {
-                            beginAtZero: true,
-                            max: 2.2,
-                            title: { display: true, text: '电价倍数' }
+                            display: false,
+                            min: 0,
+                            max: 1.2
                         },
                         x: {
-                            title: { display: true, text: '时段' }
+                            grid: { display: false },
+                            ticks: {
+                                font: { size: 12 },
+                                maxRotation: 0
+                            }
                         }
                     }
                 }
             });
+            
+            document.getElementById('myChart').style.height = '600px';
         }
 
         document.getElementById('provinceSelect').addEventListener('change', renderChart);
