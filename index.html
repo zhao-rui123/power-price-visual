@@ -18,7 +18,7 @@
             padding: 20px;
         }
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
         h1 {
@@ -77,49 +77,39 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
             margin-bottom: 20px;
         }
-        .info-panel {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
-        .time-slots {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
         }
-        .time-slot {
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
         }
-        .peak { background: linear-gradient(135deg, #ff6b6b, #ee5a5a); color: white; }
-        .flat { background: linear-gradient(135deg, #4ecdc4, #44a08d); color: white; }
-        .valley { background: linear-gradient(135deg, #45b7d1, #3498db); color: white; }
-        .sharp { background: linear-gradient(135deg, #f093fb, #f5576c); color: white; }
-        .deep { background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; }
         .update-info {
             text-align: center;
             color: rgba(255,255,255,0.8);
             margin-top: 20px;
             font-size: 0.9em;
         }
-        h3 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-        .price-info {
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-top: 5px;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>⚡ 全国分时电价可视化查询系统</h1>
-        <p class="subtitle">选择省份和月份，查看分时电价时段分布</p>
+        <p class="subtitle">选择省份和月份，查看24小时分时电价分布</p>
         
         <div class="control-panel">
             <div class="control-group">
@@ -149,75 +139,128 @@
         </div>
         
         <div class="chart-container">
+            <div class="legend">
+                <div class="legend-item" style="background: #00f2fe; color: white;">
+                    <div class="legend-color" style="background: #00f2fe;"></div>
+                    深谷
+                </div>
+                <div class="legend-item" style="background: #3498db; color: white;">
+                    <div class="legend-color" style="background: #3498db;"></div>
+                    低谷
+                </div>
+                <div class="legend-item" style="background: #4ecdc4; color: white;">
+                    <div class="legend-color" style="background: #4ecdc4;"></div>
+                    平段
+                </div>
+                <div class="legend-item" style="background: #f39c12; color: white;">
+                    <div class="legend-color" style="background: #f39c12;"></div>
+                    高峰
+                </div>
+                <div class="legend-item" style="background: #e74c3c; color: white;">
+                    <div class="legend-color" style="background: #e74c3c;"></div>
+                    尖峰
+                </div>
+            </div>
             <canvas id="priceChart"></canvas>
-        </div>
-        
-        <div class="info-panel" id="infoPanel" style="display:none;">
-            <h3>📋 时段详情</h3>
-            <div class="time-slots" id="timeSlots"></div>
         </div>
         
         <p class="update-info">数据更新时间：2026年2月 | 每月更新</p>
     </div>
 
     <script>
+        // 电价倍数：深谷0.4，低谷0.6，平段1.0，高峰1.6，尖峰2.0
+        const priceMultipliers = {
+            'deep': 0.4,   // 深谷
+            'valley': 0.6, // 低谷
+            'flat': 1.0,   // 平段
+            'peak': 1.6,   // 高峰
+            'sharp': 2.0   // 尖峰
+        };
+
+        // 颜色配置
+        const colors = {
+            'deep': '#00f2fe',   // 深谷 - 浅蓝
+            'valley': '#3498db', // 低谷 - 蓝色
+            'flat': '#4ecdc4',   // 平段 - 青绿
+            'peak': '#f39c12',   // 高峰 - 橙色
+            'sharp': '#e74c3c'   // 尖峰 - 红色
+        };
+
         // 省份数据（2026年2月数据）
         const provinceData = {
             '河南': {
-                '1': { name: '1月、2月、12月', peak: '16:00-24:00', sharp: '17:00-19:00', valley: '0:00-7:00', flat: '其他时段' },
-                '2': { name: '1月、2月、12月', peak: '16:00-24:00', sharp: '17:00-19:00', valley: '0:00-7:00', flat: '其他时段' },
-                '3': { name: '3-5月、9-11月', peak: '16:00-24:00', valley: '0:00-6:00、11:00-14:00', flat: '其他时段' },
-                '4': { name: '3-5月、9-11月', peak: '16:00-24:00', valley: '0:00-6:00、11:00-14:00', flat: '其他时段' },
-                '5': { name: '3-5月、9-11月', peak: '16:00-24:00', valley: '0:00-6:00、11:00-14:00', flat: '其他时段' },
-                '6': { name: '6-8月', peak: '16:00-24:00', sharp: '20:00-23:00(7-8月)', valley: '0:00-7:00', flat: '其他时段' },
-                '7': { name: '6-8月', peak: '16:00-24:00', sharp: '20:00-23:00', valley: '0:00-7:00', flat: '其他时段' },
-                '8': { name: '6-8月', peak: '16:00-24:00', sharp: '20:00-23:00', valley: '0:00-7:00', flat: '其他时段' },
-                '9': { name: '3-5月、9-11月', peak: '16:00-24:00', valley: '0:00-6:00、11:00-14:00', flat: '其他时段' },
-                '10': { name: '3-5月、9-11月', peak: '16:00-24:00', valley: '0:00-6:00、11:00-14:00', flat: '其他时段' },
-                '11': { name: '3-5月、9-11月', peak: '16:00-24:00', valley: '0:00-6:00、11:00-14:00', flat: '其他时段' },
-                '12': { name: '1月、2月、12月', peak: '16:00-24:00', sharp: '17:00-19:00', valley: '0:00-7:00', flat: '其他时段' }
+                '1': { 
+                    slots: [
+                        {hour: 0, type: 'valley'}, {hour: 1, type: 'valley'}, {hour: 2, type: 'valley'},
+                        {hour: 3, type: 'valley'}, {hour: 4, type: 'valley'}, {hour: 5, type: 'valley'},
+                        {hour: 6, type: 'valley'}, {hour: 7, type: 'valley'},
+                        {hour: 8, type: 'flat'}, {hour: 9, type: 'flat'}, {hour: 10, type: 'flat'},
+                        {hour: 11, type: 'flat'}, {hour: 12, type: 'flat'}, {hour: 13, type: 'flat'},
+                        {hour: 14, type: 'flat'}, {hour: 15, type: 'flat'},
+                        {hour: 16, type: 'sharp'}, {hour: 17, type: 'sharp'}, {hour: 18, type: 'peak'},
+                        {hour: 19, type: 'sharp'}, {hour: 20, type: 'peak'}, {hour: 21, type: 'peak'},
+                        {hour: 22, type: 'peak'}, {hour: 23, type: 'peak'}
+                    ]
+                },
+                '2': {
+                    slots: [
+                        {hour: 0, type: 'valley'}, {hour: 1, type: 'valley'}, {hour: 2, type: 'valley'},
+                        {hour: 3, type: 'valley'}, {hour: 4, type: 'valley'}, {hour: 5, type: 'valley'},
+                        {hour: 6, type: 'valley'}, {hour: 7, type: 'valley'},
+                        {hour: 8, type: 'flat'}, {hour: 9, type: 'flat'}, {hour: 10, type: 'flat'},
+                        {hour: 11, type: 'flat'}, {hour: 12, type: 'flat'}, {hour: 13, type: 'flat'},
+                        {hour: 14, type: 'flat'}, {hour: 15, type: 'flat'},
+                        {hour: 16, type: 'peak'}, {hour: 17, type: 'peak'}, {hour: 18, type: 'peak'},
+                        {hour: 19, type: 'peak'}, {hour: 20, type: 'peak'}, {hour: 21, type: 'peak'},
+                        {hour: 22, type: 'peak'}, {hour: 23, type: 'peak'}
+                    ]
+                },
+                '7': {
+                    slots: [
+                        {hour: 0, type: 'valley'}, {hour: 1, type: 'valley'}, {hour: 2, type: 'valley'},
+                        {hour: 3, type: 'valley'}, {hour: 4, type: 'valley'}, {hour: 5, type: 'valley'},
+                        {hour: 6, type: 'valley'}, {hour: 7, type: 'valley'},
+                        {hour: 8, type: 'flat'}, {hour: 9, type: 'flat'}, {hour: 10, type: 'flat'},
+                        {hour: 11, type: 'flat'}, {hour: 12, type: 'flat'}, {hour: 13, type: 'flat'},
+                        {hour: 14, type: 'flat'}, {hour: 15, type: 'flat'},
+                        {hour: 16, type: 'peak'}, {hour: 17, type: 'peak'}, {hour: 18, type: 'peak'},
+                        {hour: 19, type: 'peak'}, {hour: 20, type: 'sharp'}, {hour: 21, type: 'sharp'},
+                        {hour: 22, type: 'sharp'}, {hour: 23, type: 'peak'}
+                    ]
+                }
             },
             '江苏': {
-                '1': { name: '冬季', peak: '14:00-22:00', valley: '0:00-6:00、11:00-13:00', flat: '其他时段' },
-                '2': { name: '冬季', peak: '14:00-22:00', valley: '0:00-6:00、11:00-13:00', flat: '其他时段' },
-                '3': { name: '春季', peak: '15:00-22:00', valley: '2:00-6:00、10:00-14:00', flat: '其他时段' },
-                '4': { name: '春季', peak: '15:00-22:00', valley: '2:00-6:00、10:00-14:00', flat: '其他时段' },
-                '5': { name: '春季', peak: '15:00-22:00', valley: '2:00-6:00、10:00-14:00', flat: '其他时段' },
-                '6': { name: '夏季', peak: '14:00-22:00', valley: '0:00-6:00、11:00-13:00', flat: '其他时段' },
-                '7': { name: '夏季', peak: '14:00-22:00', valley: '0:00-6:00、11:00-13:00', flat: '其他时段' },
-                '8': { name: '夏季', peak: '14:00-22:00', valley: '0:00-6:00、11:00-13:00', flat: '其他时段' },
-                '9': { name: '秋季', peak: '15:00-22:00', valley: '2:00-6:00、10:00-14:00', flat: '其他时段' },
-                '10': { name: '秋季', peak: '15:00-22:00', valley: '2:00-6:00、10:00-14:00', flat: '其他时段' },
-                '11': { name: '秋季', peak: '15:00-22:00', valley: '2:00-6:00、10:00-14:00', flat: '其他时段' },
-                '12': { name: '冬季', peak: '14:00-22:00', valley: '0:00-6:00、11:00-13:00', flat: '其他时段' }
+                '1': {
+                    slots: [
+                        {hour: 0, type: 'valley'}, {hour: 1, type: 'valley'}, {hour: 2, type: 'valley'},
+                        {hour: 3, type: 'valley'}, {hour: 4, type: 'valley'}, {hour: 5, type: 'valley'},
+                        {hour: 6, type: 'valley'},
+                        {hour: 7, type: 'flat'}, {hour: 8, type: 'flat'}, {hour: 9, type: 'flat'},
+                        {hour: 10, type: 'flat'}, {hour: 11, type: 'valley'},
+                        {hour: 12, type: 'valley'}, {hour: 13, type: 'valley'},
+                        {hour: 14, type: 'peak'}, {hour: 15, type: 'peak'},
+                        {hour: 16, type: 'peak'}, {hour: 17, type: 'peak'}, {hour: 18, type: 'peak'},
+                        {hour: 19, type: 'peak'}, {hour: 20, type: 'peak'}, {hour: 21, type: 'peak'},
+                        {hour: 22, type: 'peak'},
+                        {hour: 23, type: 'flat'}
+                    ]
+                }
             },
             '广东': {
-                '1': { name: '全年统一', sharp: '11:00-12:00、15:00-17:00(7-9月)', peak: '10:00-12:00、14:00-19:00', valley: '0:00-8:00', flat: '8:00-10:00、19:00-24:00' },
-                '2': { name: '全年统一', sharp: '11:00-12:00、15:00-17:00(7-9月)', peak: '10:00-12:00、14:00-19:00', valley: '0:00-8:00', flat: '8:00-10:00、19:00-24:00' },
-                '3': { name: '全年统一', sharp: '11:00-12:00、15:00-17:00(7-9月)', peak: '10:00-12:00、14:00-19:00', valley: '0:00-8:00', flat: '8:00-10:00、19:00-24:00' },
-                '4': { name: '全年统一', sharp: '11:00-12:00、15:00-17:00(7-9月)', peak: '10:00-12:00、14:00-19:00', valley: '0:00-8:00', flat: '8:00-10:00、19:00-24:00' },
-                '5': { name: '全年统一', sharp: '11:00-12:00、15:00-17:00(7-9月)', peak: '10:00-12:00、14:00-19:00', valley: '0:00-8:00', flat: '8:00-10:00、19:00-24:00' },
-                '6': { name: '全年统一', sharp: '11:00-12:00、15:00-17:00', peak: '10:00-12:00、14:00-19:00', valley: '0:00-8:00', flat: '8:00-10:00、19:00-24:00' },
-                '7': { name: '全年统一', sharp: '11:00-12:00、15:00-17:00', peak: '10:00-12:00、14:00-19:00', valley: '0:00-8:00', flat: '8:00-10:00、19:00-24:00' },
-                '8': { name: '全年统一', sharp: '11:00-12:00、15:00-17:00', peak: '10:00-12:00、14:00-19:00', valley: '0:00-8:00', flat: '8:00-10:00、19:00-24:00' },
-                '9': { name: '全年统一', sharp: '11:00-12:00、15:00-17:00', peak: '10:00-12:00、14:00-19:00', valley: '0:00-8:00', flat: '8:00-10:00、19:00-24:00' },
-                '10': { name: '全年统一', sharp: '11:00-12:00、15:00-17:00(7-9月)', peak: '10:00-12:00、14:00-19:00', valley: '0:00-8:00', flat: '8:00-10:00、19:00-24:00' },
-                '11': { name: '全年统一', sharp: '11:00-12:00、15:00-17:00(7-9月)', peak: '10:00-12:00、14:00-19:00', valley: '0:00-8:00', flat: '8:00-10:00、19:00-24:00' },
-                '12': { name: '全年统一', sharp: '11:00-12:00、15:00-17:00(7-9月)', peak: '10:00-12:00、14:00-19:00', valley: '0:00-8:00', flat: '8:00-10:00、19:00-24:00' }
-            },
-            '山东': {
-                '1': { name: '冬季', peak: '17:00-22:00', sharp: '17:00-22:00', valley: '2:00-7:00、9:00-16:00', flat: '其他时段' },
-                '2': { name: '冬季', peak: '17:00-22:00', sharp: '17:00-22:00', valley: '2:00-7:00、9:00-16:00', flat: '其他时段' },
-                '3': { name: '其他月份', peak: '16:00-21:00', valley: '2:00-7:00、9:00-14:00', flat: '其他时段' },
-                '4': { name: '其他月份', peak: '16:00-21:00', valley: '2:00-7:00、9:00-14:00', flat: '其他时段' },
-                '5': { name: '其他月份', peak: '16:00-21:00', valley: '2:00-7:00、9:00-14:00', flat: '其他时段' },
-                '6': { name: '夏季', peak: '17:00-22:00', valley: '2:00-7:00、9:00-16:00', flat: '其他时段' },
-                '7': { name: '夏季', peak: '17:00-22:00', sharp: '17:00-22:00', valley: '2:00-7:00、9:00-16:00', flat: '其他时段' },
-                '8': { name: '夏季', peak: '17:00-22:00', sharp: '17:00-22:00', valley: '2:00-7:00、9:00-16:00', flat: '其他时段' },
-                '9': { name: '其他月份', peak: '16:00-21:00', valley: '2:00-7:00、9:00-14:00', flat: '其他时段' },
-                '10': { name: '其他月份', peak: '16:00-21:00', valley: '2:00-7:00、9:00-14:00', flat: '其他时段' },
-                '11': { name: '其他月份', peak: '16:00-21:00', valley: '2:00-7:00、9:00-14:00', flat: '其他时段' },
-                '12': { name: '冬季', peak: '17:00-22:00', sharp: '17:00-22:00', valley: '2:00-7:00、9:00-16:00', flat: '其他时段' }
+                '1': {
+                    slots: [
+                        {hour: 0, type: 'valley'}, {hour: 1, type: 'valley'}, {hour: 2, type: 'valley'},
+                        {hour: 3, type: 'valley'}, {hour: 4, type: 'valley'}, {hour: 5, type: 'valley'},
+                        {hour: 6, type: 'valley'}, {hour: 7, type: 'valley'},
+                        {hour: 8, type: 'flat'}, {hour: 9, type: 'flat'}, {hour: 10, type: 'peak'},
+                        {hour: 11, type: 'sharp'}, {hour: 12, type: 'peak'},
+                        {hour: 13, type: 'peak'}, {hour: 14, type: 'peak'},
+                        {hour: 15, type: 'sharp'}, {hour: 16, type: 'sharp'}, {hour: 17, type: 'sharp'},
+                        {hour: 18, type: 'peak'}, {hour: 19, type: 'peak'},
+                        {hour: 20, type: 'flat'}, {hour: 21, type: 'flat'}, {hour: 22, type: 'flat'},
+                        {hour: 23, type: 'flat'}
+                    ]
+                }
             }
         };
 
@@ -244,44 +287,10 @@
                 return;
             }
             
-            // 显示信息面板
-            document.getElementById('infoPanel').style.display = 'block';
-            
-            // 更新时段详情
-            const timeSlotsDiv = document.getElementById('timeSlots');
-            timeSlotsDiv.innerHTML = '';
-            
-            if (data.sharp) {
-                timeSlotsDiv.innerHTML += `<div class="time-slot sharp">
-                    <div>🔥 尖峰时段</div>
-                    <div class="price-info">${data.sharp}</div>
-                </div>`;
-            }
-            if (data.peak) {
-                timeSlotsDiv.innerHTML += `<div class="time-slot peak">
-                    <div>⚡ 高峰时段</div>
-                    <div class="price-info">${data.peak}</div>
-                </div>`;
-            }
-            if (data.flat) {
-                timeSlotsDiv.innerHTML += `<div class="time-slot flat">
-                    <div>📊 平时时段</div>
-                    <div class="price-info">${data.flat}</div>
-                </div>`;
-            }
-            if (data.valley) {
-                timeSlotsDiv.innerHTML += `<div class="time-slot valley">
-                    <div>🌙 低谷时段</div>
-                    <div class="price-info">${data.valley}</div>
-                </div>`;
-            }
-            
-            // 创建柱状图数据
-            const hours = Array.from({length: 24}, (_, i) => i + ':00');
-            const prices = new Array(24).fill(1); // 平时电价为基础
-            
-            // 根据时段设置电价倍数
-            // 这里简化处理，实际应根据具体时段计算
+            // 准备图表数据
+            const hours = data.slots.map(s => s.hour + ':00');
+            const prices = data.slots.map(s => priceMultipliers[s.type]);
+            const barColors = data.slots.map(s => colors[s.type]);
             
             const ctx = document.getElementById('priceChart').getContext('2d');
             
@@ -294,40 +303,65 @@
                 data: {
                     labels: hours,
                     datasets: [{
-                        label: province + ' ' + month + '月电价分布',
+                        label: province + ' ' + month + '月 24小时电价分布',
                         data: prices,
-                        backgroundColor: prices.map((_, i) => {
-                            // 根据时段返回不同颜色
-                            return '#4ecdc4'; // 默认平时
-                        }),
-                        borderWidth: 0
+                        backgroundColor: barColors,
+                        borderWidth: 1,
+                        borderColor: '#fff'
                     }]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: true,
                     plugins: {
                         legend: {
-                            display: true,
-                            position: 'top'
+                            display: false
                         },
                         title: {
                             display: true,
-                            text: data.name + ' 分时电价分布',
-                            font: { size: 18 }
+                            text: province + ' ' + month + '月 24小时分时电价分布',
+                            font: { size: 20, weight: 'bold' },
+                            padding: 20
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const typeNames = {
+                                        'deep': '深谷',
+                                        'valley': '低谷', 
+                                        'flat': '平段',
+                                        'peak': '高峰',
+                                        'sharp': '尖峰'
+                                    };
+                                    const slot = data.slots[context.dataIndex];
+                                    return typeNames[slot.type] + ': ' + context.parsed.y + '倍';
+                                }
+                            }
                         }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
+                            max: 2.2,
                             title: {
                                 display: true,
-                                text: '电价倍数'
+                                text: '电价倍数（以平段为基准）',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value + 'x';
+                                }
                             }
                         },
                         x: {
                             title: {
                                 display: true,
-                                text: '时段'
+                                text: '时段',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                maxRotation: 45
                             }
                         }
                     }
