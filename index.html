@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全国分时电价可视化查询系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .subtitle {
+            text-align: center;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        .control-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        label {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9em;
+        }
+        select {
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            min-width: 150px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        select:hover, select:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        .chart-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        .info-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .time-slot {
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .peak { background: linear-gradient(135deg, #ff6b6b, #ee5a5a); color: white; }
+        .flat { background: linear-gradient(135deg, #4ecdc4, #44a08d); color: white; }
+        .valley { background: linear-gradient(135deg, #45b7d1, #3498db); color: white; }
+        .sharp { background: linear-gradient(135deg, #f093fb, #f5576c); color: white; }
+        .deep { background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; }
+        .update-info {
+            text-align: center;
+            color: rgba(255,255,255,0.8);
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+        h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .price-info {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ 全国分时电价可视化查询系统</h1>
+        <p class="subtitle">选择省份和月份，查看分时电价时段分布</p>
+        
+        <div class="control-panel">
+            <div class="control-group">
+                <label>选择省份</label>
+                <select id="provinceSelect">
+                    <option value="">请选择省份</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>选择月份</label>
+                <select id="monthSelect">
+                    <option value="">请选择月份</option>
+                    <option value="1">1月</option>
+                    <option value="2">2月</option>
+                    <option value="3">3月</option>
+                    <option value="4">4月</option>
+                    <option value="5">5月</option>
+                    <option value="6">6月</option>
+                    <option value="7">7月</option>
+                    <option value="8">8月</option>
+                    <option value="9">9月</option>
+                    <option value="10">10月</option>
+                    <option value="11">11月</option>
+                    <option value="12">12月</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <canvas id="priceChart"></canvas>
+        </div>
+        
+        <div class="info-panel" id="infoPanel" style="display:none;">
+            <h3>📋 时段详情</h3>
+            <div class="time-slots" id="timeSlots"></div>
+        </div>
+        
+        <p class="update-info">数据更新时间：2026年2月 | 每月更新</p>
+    </div>
+
+    <script>
+        // 省份数据（2026年2月数据）
+        const provinceData = {
+            '河南': {
+                '1': { name: '1月、2月、12月', peak: '16:00-24:00', sharp: '17:00-19:00', valley: '0:00-7:00', flat: '其他时段' },
+                '2': { name: '1月、2月、12月', peak: '16:00-24:00', sharp: '17:00-19:00', valley: '0:00-7:00', flat: '其他时段' },
+                '3': { name: '3-5月、9-11月', peak: '16:00-24:00', valley: '0:00-6:00、11:00-14:00', flat: '其他时段' },
+                '4': { name: '3-5月、9-11月', peak: '16:00-24:00', valley: '0:00-6:00、11:00-14:00', flat: '其他时段' },
+                '5': { name: '3-5月、9-11月', peak: '16:00-24:00', valley: '0:00-6:00、11:00-14:00', flat: '其他时段' },
+                '6': { name: '6-8月', peak: '16:00-24:00', sharp: '20:00-23:00(7-8月)', valley: '0:00-7:00', flat: '其他时段' },
+                '7': { name: '6-8月', peak: '16:00-24:00', sharp: '20:00-23:00', valley: '0:00-7:00', flat: '其他时段' },
+                '8': { name: '6-8月', peak: '16:00-24:00', sharp: '20:00-23:00', valley: '0:00-7:00', flat: '其他时段' },
+                '9': { name: '3-5月、9-11月', peak: '16:00-24:00', valley: '0:00-6:00、11:00-14:00', flat: '其他时段' },
+                '10': { name: '3-5月、9-11月', peak: '16:00-24:00', valley: '0:00-6:00、11:00-14:00', flat: '其他时段' },
+                '11': { name: '3-5月、9-11月', peak: '16:00-24:00', valley: '0:00-6:00、11:00-14:00', flat: '其他时段' },
+                '12': { name: '1月、2月、12月', peak: '16:00-24:00', sharp: '17:00-19:00', valley: '0:00-7:00', flat: '其他时段' }
+            },
+            '江苏': {
+                '1': { name: '冬季', peak: '14:00-22:00', valley: '0:00-6:00、11:00-13:00', flat: '其他时段' },
+                '2': { name: '冬季', peak: '14:00-22:00', valley: '0:00-6:00、11:00-13:00', flat: '其他时段' },
+                '3': { name: '春季', peak: '15:00-22:00', valley: '2:00-6:00、10:00-14:00', flat: '其他时段' },
+                '4': { name: '春季', peak: '15:00-22:00', valley: '2:00-6:00、10:00-14:00', flat: '其他时段' },
+                '5': { name: '春季', peak: '15:00-22:00', valley: '2:00-6:00、10:00-14:00', flat: '其他时段' },
+                '6': { name: '夏季', peak: '14:00-22:00', valley: '0:00-6:00、11:00-13:00', flat: '其他时段' },
+                '7': { name: '夏季', peak: '14:00-22:00', valley: '0:00-6:00、11:00-13:00', flat: '其他时段' },
+                '8': { name: '夏季', peak: '14:00-22:00', valley: '0:00-6:00、11:00-13:00', flat: '其他时段' },
+                '9': { name: '秋季', peak: '15:00-22:00', valley: '2:00-6:00、10:00-14:00', flat: '其他时段' },
+                '10': { name: '秋季', peak: '15:00-22:00', valley: '2:00-6:00、10:00-14:00', flat: '其他时段' },
+                '11': { name: '秋季', peak: '15:00-22:00', valley: '2:00-6:00、10:00-14:00', flat: '其他时段' },
+                '12': { name: '冬季', peak: '14:00-22:00', valley: '0:00-6:00、11:00-13:00', flat: '其他时段' }
+            },
+            '广东': {
+                '1': { name: '全年统一', sharp: '11:00-12:00、15:00-17:00(7-9月)', peak: '10:00-12:00、14:00-19:00', valley: '0:00-8:00', flat: '8:00-10:00、19:00-24:00' },
+                '2': { name: '全年统一', sharp: '11:00-12:00、15:00-17:00(7-9月)', peak: '10:00-12:00、14:00-19:00', valley: '0:00-8:00', flat: '8:00-10:00、19:00-24:00' },
+                '3': { name: '全年统一', sharp: '11:00-12:00、15:00-17:00(7-9月)', peak: '10:00-12:00、14:00-19:00', valley: '0:00-8:00', flat: '8:00-10:00、19:00-24:00' },
+                '4': { name: '全年统一', sharp: '11:00-12:00、15:00-17:00(7-9月)', peak: '10:00-12:00、14:00-19:00', valley: '0:00-8:00', flat: '8:00-10:00、19:00-24:00' },
+                '5': { name: '全年统一', sharp: '11:00-12:00、15:00-17:00(7-9月)', peak: '10:00-12:00、14:00-19:00', valley: '0:00-8:00', flat: '8:00-10:00、19:00-24:00' },
+                '6': { name: '全年统一', sharp: '11:00-12:00、15:00-17:00', peak: '10:00-12:00、14:00-19:00', valley: '0:00-8:00', flat: '8:00-10:00、19:00-24:00' },
+                '7': { name: '全年统一', sharp: '11:00-12:00、15:00-17:00', peak: '10:00-12:00、14:00-19:00', valley: '0:00-8:00', flat: '8:00-10:00、19:00-24:00' },
+                '8': { name: '全年统一', sharp: '11:00-12:00、15:00-17:00', peak: '10:00-12:00、14:00-19:00', valley: '0:00-8:00', flat: '8:00-10:00、19:00-24:00' },
+                '9': { name: '全年统一', sharp: '11:00-12:00、15:00-17:00', peak: '10:00-12:00、14:00-19:00', valley: '0:00-8:00', flat: '8:00-10:00、19:00-24:00' },
+                '10': { name: '全年统一', sharp: '11:00-12:00、15:00-17:00(7-9月)', peak: '10:00-12:00、14:00-19:00', valley: '0:00-8:00', flat: '8:00-10:00、19:00-24:00' },
+                '11': { name: '全年统一', sharp: '11:00-12:00、15:00-17:00(7-9月)', peak: '10:00-12:00、14:00-19:00', valley: '0:00-8:00', flat: '8:00-10:00、19:00-24:00' },
+                '12': { name: '全年统一', sharp: '11:00-12:00、15:00-17:00(7-9月)', peak: '10:00-12:00、14:00-19:00', valley: '0:00-8:00', flat: '8:00-10:00、19:00-24:00' }
+            },
+            '山东': {
+                '1': { name: '冬季', peak: '17:00-22:00', sharp: '17:00-22:00', valley: '2:00-7:00、9:00-16:00', flat: '其他时段' },
+                '2': { name: '冬季', peak: '17:00-22:00', sharp: '17:00-22:00', valley: '2:00-7:00、9:00-16:00', flat: '其他时段' },
+                '3': { name: '其他月份', peak: '16:00-21:00', valley: '2:00-7:00、9:00-14:00', flat: '其他时段' },
+                '4': { name: '其他月份', peak: '16:00-21:00', valley: '2:00-7:00、9:00-14:00', flat: '其他时段' },
+                '5': { name: '其他月份', peak: '16:00-21:00', valley: '2:00-7:00、9:00-14:00', flat: '其他时段' },
+                '6': { name: '夏季', peak: '17:00-22:00', valley: '2:00-7:00、9:00-16:00', flat: '其他时段' },
+                '7': { name: '夏季', peak: '17:00-22:00', sharp: '17:00-22:00', valley: '2:00-7:00、9:00-16:00', flat: '其他时段' },
+                '8': { name: '夏季', peak: '17:00-22:00', sharp: '17:00-22:00', valley: '2:00-7:00、9:00-16:00', flat: '其他时段' },
+                '9': { name: '其他月份', peak: '16:00-21:00', valley: '2:00-7:00、9:00-14:00', flat: '其他时段' },
+                '10': { name: '其他月份', peak: '16:00-21:00', valley: '2:00-7:00、9:00-14:00', flat: '其他时段' },
+                '11': { name: '其他月份', peak: '16:00-21:00', valley: '2:00-7:00、9:00-14:00', flat: '其他时段' },
+                '12': { name: '冬季', peak: '17:00-22:00', sharp: '17:00-22:00', valley: '2:00-7:00、9:00-16:00', flat: '其他时段' }
+            }
+        };
+
+        // 初始化省份选择
+        const provinceSelect = document.getElementById('provinceSelect');
+        Object.keys(provinceData).forEach(province => {
+            const option = document.createElement('option');
+            option.value = province;
+            option.textContent = province;
+            provinceSelect.appendChild(option);
+        });
+
+        let chart = null;
+
+        function updateChart() {
+            const province = provinceSelect.value;
+            const month = document.getElementById('monthSelect').value;
+            
+            if (!province || !month) return;
+            
+            const data = provinceData[province][month];
+            if (!data) {
+                alert('该省份暂无' + month + '月数据');
+                return;
+            }
+            
+            // 显示信息面板
+            document.getElementById('infoPanel').style.display = 'block';
+            
+            // 更新时段详情
+            const timeSlotsDiv = document.getElementById('timeSlots');
+            timeSlotsDiv.innerHTML = '';
+            
+            if (data.sharp) {
+                timeSlotsDiv.innerHTML += `<div class="time-slot sharp">
+                    <div>🔥 尖峰时段</div>
+                    <div class="price-info">${data.sharp}</div>
+                </div>`;
+            }
+            if (data.peak) {
+                timeSlotsDiv.innerHTML += `<div class="time-slot peak">
+                    <div>⚡ 高峰时段</div>
+                    <div class="price-info">${data.peak}</div>
+                </div>`;
+            }
+            if (data.flat) {
+                timeSlotsDiv.innerHTML += `<div class="time-slot flat">
+                    <div>📊 平时时段</div>
+                    <div class="price-info">${data.flat}</div>
+                </div>`;
+            }
+            if (data.valley) {
+                timeSlotsDiv.innerHTML += `<div class="time-slot valley">
+                    <div>🌙 低谷时段</div>
+                    <div class="price-info">${data.valley}</div>
+                </div>`;
+            }
+            
+            // 创建柱状图数据
+            const hours = Array.from({length: 24}, (_, i) => i + ':00');
+            const prices = new Array(24).fill(1); // 平时电价为基础
+            
+            // 根据时段设置电价倍数
+            // 这里简化处理，实际应根据具体时段计算
+            
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            
+            if (chart) {
+                chart.destroy();
+            }
+            
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: hours,
+                    datasets: [{
+                        label: province + ' ' + month + '月电价分布',
+                        data: prices,
+                        backgroundColor: prices.map((_, i) => {
+                            // 根据时段返回不同颜色
+                            return '#4ecdc4'; // 默认平时
+                        }),
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        title: {
+                            display: true,
+                            text: data.name + ' 分时电价分布',
+                            font: { size: 18 }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '电价倍数'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: '时段'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 监听选择变化
+        provinceSelect.addEventListener('change', updateChart);
+        document.getElementById('monthSelect').addEventListener('change', updateChart);
+    </script>
+</body>
+</html>
